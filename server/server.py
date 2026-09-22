@@ -13,6 +13,15 @@ CONFIG_FILE = BASE_DIR / "config" / "server.json"
 WEB_DIR = BASE_DIR / "web"
 
 MAX_CLIENTS = 100
+MAX_LOOKOUTS = 3
+
+ALLOWED_ORIGINS = {
+    "https://warden-watch.onrender.com",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+}
+
+MAX_AUTH_MESSAGE_SIZE = 2048
 
 ALLOWED_EVENTS = {
     "WARDEN_ENTERED",
@@ -71,8 +80,7 @@ app.mount(
 )
 
 clients = set()
-lookout = None
-
+lookouts = set()
 
 def token_matches(provided, expected):
     if not isinstance(provided, str):
@@ -100,18 +108,39 @@ async def version():
 async def send_json(websocket, data):
     await websocket.send_text(json.dumps(data))
 
-
 async def authenticate(websocket):
-    global lookout
 
     try:
         raw_message = await websocket.receive_text()
+
+    except WebSocketDisconnect:
+        return None
+
+    if len(raw_message) > MAX_AUTH_MESSAGE_SIZE:
+        await send_json(websocket, {
+            "type": "auth_result",
+            "success": False,
+            "reason": "Authentication message too large",
+        })
+        return None
+
+    try:
         data = json.loads(raw_message)
 
-    except (json.JSONDecodeError, WebSocketDisconnect):
+    except json.JSONDecodeError:
+        await send_json(websocket, {
+            "type": "auth_result",
+            "success": False,
+            "reason": "Invalid authentication message",
+        })
         return None
 
     if not isinstance(data, dict):
+        await send_json(websocket, {
+            "type": "auth_result",
+            "success": False,
+            "reason": "Invalid authentication message",
+        })
         return None
 
     if data.get("type") != "auth":
@@ -126,15 +155,15 @@ async def authenticate(websocket):
 
     if token_matches(token, LOOKOUT_TOKEN):
 
-        if lookout is not None:
+        if len(lookouts) >= MAX_LOOKOUTS:
             await send_json(websocket, {
                 "type": "auth_result",
                 "success": False,
-                "reason": "Lookout already connected",
+                "reason": "Lookout limit reached",
             })
             return None
 
-        lookout = websocket
+        lookouts.add(websocket)
 
         await send_json(websocket, {
             "type": "auth_result",
@@ -142,7 +171,10 @@ async def authenticate(websocket):
             "role": "lookout",
         })
 
-        print("[+] Lookout authenticated")
+        print(
+            f"[+] Lookout authenticated "
+            f"({len(lookouts)} total)"
+        )
 
         return "lookout"
 
@@ -199,7 +231,12 @@ async def broadcast(message):
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
 
-    global lookout
+    origin = websocket.headers.get("origin")
+
+    if origin not in ALLOWED_ORIGINS:
+        print(f"[!] Rejected WebSocket origin: {origin}")
+        await websocket.close(code=1008)
+        return
 
     await websocket.accept()
 
@@ -254,9 +291,13 @@ async def websocket_endpoint(websocket: WebSocket):
 
         clients.discard(websocket)
 
-        if websocket is lookout:
-            lookout = None
-            print("[-] Lookout disconnected")
+        if websocket in lookouts:
+            lookouts.discard(websocket)
+
+            print(
+                f"[-] Lookout disconnected "
+                f"({len(lookouts)} remaining)"
+            )
 
         elif role == "client":
             print(
