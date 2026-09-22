@@ -1,46 +1,46 @@
 let socket = null;
 let token = null;
 let role = null;
+let authenticated = false;
 
 let reconnectTimer = null;
 let reconnectDelay = 1000;
 let manuallyDisconnected = false;
 
-let alertResetTimer = null;
 
 const EVENTS = {
     WARDEN_ENTERED: {
         icon: "🔴",
         title: "Warden entered",
-        message: "Heads up.",
+        message: "Be alert",
         className: "alert-red"
     },
 
     WARDEN_STOOD_UP: {
         icon: "🟠",
         title: "Warden stood up",
-        message: "Eyes open.",
+        message: "Be prepared",
         className: "alert-orange"
     },
 
     WARDEN_LOOKING: {
         icon: "🟡",
         title: "Warden looking",
-        message: "Be careful.",
+        message: "Stay sharp",
         className: "alert-yellow"
     },
 
     COAST_CLEAR: {
         icon: "🟢",
         title: "Coast clear",
-        message: "You're good.",
+        message: "Yay",
         className: "alert-green"
     },
 
     WARDEN_LEFT: {
         icon: "🟢",
         title: "Warden left",
-        message: "Back to normal.",
+        message: "Goon forth my children",
         className: "alert-green"
     }
 };
@@ -56,6 +56,12 @@ const SHORTCUTS = {
 
 
 const statusElement = document.getElementById("status");
+const connectionStatus = document.getElementById("connection-status");
+const statusDot = document.getElementById("status-dot");
+
+const roleStatus = document.getElementById("role-status");
+const roleLabel = document.getElementById("role-label");
+
 const tokenInput = document.getElementById("token");
 const connectButton = document.getElementById("connect");
 const errorElement = document.getElementById("error");
@@ -69,9 +75,20 @@ const alertIcon = document.getElementById("alert-icon");
 const alertTitle = document.getElementById("alert-title");
 const alertMessage = document.getElementById("alert-message");
 
+const lastAlert = document.getElementById("last-alert");
+const lastAlertTitle = document.getElementById("last-alert-title");
+const lastAlertTime = document.getElementById("last-alert-time");
 
-function setStatus(text) {
+const lastSent = document.getElementById("last-sent");
+const lastSentTitle = document.getElementById("last-sent-title");
+const lastSentTime = document.getElementById("last-sent-time");
+
+
+function setStatus(text, state = "disconnected") {
     statusElement.textContent = text;
+
+    connectionStatus.className = "";
+    connectionStatus.classList.add(`status-${state}`);
 }
 
 
@@ -95,6 +112,47 @@ function showRole() {
     }
 }
 
+function getCurrentTime() {
+
+    return new Date().toLocaleTimeString(
+        [],
+        {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        }
+    );
+}
+
+
+function updateLastAlert(event) {
+
+    const alert = EVENTS[event];
+
+    if (!alert) {
+        return;
+    }
+
+    lastAlertTitle.textContent = alert.title;
+    lastAlertTime.textContent = getCurrentTime();
+
+    lastAlert.classList.remove("hidden");
+}
+
+
+function updateLastSent(event) {
+
+    const alert = EVENTS[event];
+
+    if (!alert) {
+        return;
+    }
+
+    lastSentTitle.textContent = alert.title;
+    lastSentTime.textContent = getCurrentTime();
+
+    lastSent.classList.remove("hidden");
+}
 
 function requestNotifications() {
 
@@ -124,7 +182,6 @@ function sendNotification(alert) {
     });
 }
 
-
 function displayAlert(event) {
 
     const alert = EVENTS[event];
@@ -133,7 +190,7 @@ function displayAlert(event) {
         return;
     }
 
-    clearTimeout(alertResetTimer);
+    updateLastAlert(event);
 
     alertDisplay.className = "";
     alertDisplay.classList.add(alert.className);
@@ -144,21 +201,8 @@ function displayAlert(event) {
     alertMessage.textContent = alert.message;
 
     sendNotification(alert);
-
-    /*
-     * Keep the alert visible for 6 seconds.
-     * Then return to the neutral state.
-     */
-    alertResetTimer = setTimeout(() => {
-
-        alertDisplay.className = "";
-
-        alertIcon.textContent = "🟢";
-        alertTitle.textContent = "Coast clear";
-        alertMessage.textContent = "Waiting for an alert...";
-
-    }, 6000);
 }
+
 
 
 function getWebSocketURL() {
@@ -183,7 +227,8 @@ function scheduleReconnect() {
     }
 
     setStatus(
-        `Disconnected — reconnecting in ${reconnectDelay / 1000}s...`
+        `Reconnecting in ${reconnectDelay / 1000}s...`,
+        "reconnecting"
     );
 
     reconnectTimer = setTimeout(() => {
@@ -217,13 +262,13 @@ function connectSocket() {
         return;
     }
 
-    setStatus("Connecting...");
+    setStatus("Connecting...", "connecting");
 
     socket = new WebSocket(getWebSocketURL());
 
     socket.addEventListener("open", () => {
 
-        setStatus("Authenticating...");
+        setStatus("Authenticating...", "authenticating");
 
         socket.send(JSON.stringify({
             type: "auth",
@@ -250,7 +295,12 @@ function connectSocket() {
 
             if (!data.success) {
 
-                setStatus("Authentication failed");
+                authenticated = false;
+
+                setStatus(
+                    "Authentication failed",
+                    "disconnected"
+                );
 
                 showError(
                     data.reason || "Authentication failed."
@@ -264,15 +314,18 @@ function connectSocket() {
             }
 
             role = data.role;
+            authenticated = true;
 
             reconnectDelay = 1000;
 
             setStatus(
                 role === "lookout"
                 ? "Connected as lookout"
-                : "Connected as client"
+                : "Connected as client",
+                "connected"
             );
 
+            setRole(role);
             showRole();
 
             if (role === "client") {
@@ -295,13 +348,24 @@ function connectSocket() {
     socket.addEventListener("close", () => {
 
         socket = null;
+        authenticated = false;
 
         if (manuallyDisconnected) {
-            setStatus("Disconnected");
+
+            setStatus(
+                "Disconnected",
+                "disconnected"
+            );
+
+            setRole(null);
+
             return;
         }
 
-        setStatus("Connection lost");
+        setStatus(
+            "Connection lost",
+            "disconnected"
+        );
 
         scheduleReconnect();
 
@@ -310,11 +374,30 @@ function connectSocket() {
 
     socket.addEventListener("error", () => {
 
-        setStatus("Connection error");
+        setStatus(
+            "Connection error",
+            "disconnected"
+        );
 
     });
 }
 
+
+function setRole(role) {
+
+    if (!role) {
+        roleStatus.classList.add("hidden");
+        roleLabel.textContent = "";
+        return;
+    }
+
+    roleStatus.classList.remove("hidden");
+
+    roleLabel.textContent =
+    role === "lookout"
+    ? "LOOKOUT"
+    : "CLIENT";
+}
 
 function connect() {
 
@@ -342,9 +425,16 @@ function connect() {
 
 function sendAlert(event) {
 
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
+    if (
+        !socket ||
+        socket.readyState !== WebSocket.OPEN ||
+        !authenticated
+    ) {
 
-        setStatus("Not connected.");
+        setStatus(
+            "Not connected.",
+            "disconnected"
+        );
 
         return;
     }
@@ -353,6 +443,8 @@ function sendAlert(event) {
         type: "alert",
         event: event
     }));
+
+    updateLastSent(event);
 
     /*
      * Give the lookout immediate feedback.

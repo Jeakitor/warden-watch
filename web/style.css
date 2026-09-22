@@ -311,3 +311,196 @@ animation: sent-flash 0.35s ease;
     }
 
 }
+
+
+/* Phase 4 — connection status */
+
+#connection-status {
+margin-top: 0.5rem;
+display: inline-flex;
+align-items: center;
+gap: 0.5rem;
+font-size: 0.95rem;
+font-weight: 600;
+transition: opacity 0.2s ease;
+}
+
+#status-dot {
+width: 0.65rem;
+height: 0.65rem;
+border-radius: 50%;
+display: inline-block;
+}
+
+.status-connected {
+    color: #7bdc7b;
+}
+
+.status-connected #status-dot {
+    background: #65c765;
+}
+
+.status-connecting,
+.status-authenticating,
+.status-reconnecting {
+    color: #d8b75a;
+}
+
+.status-connecting #status-dot,
+.status-authenticating #status-dot,
+.status-reconnecting #status-dot {
+    background: #d8b75a;
+}
+
+.status-disconnected {
+    color: #e06b6b;
+}
+
+.status-disconnected #status-dot {
+    background: #d85c5c;
+}
+
+
+/* Role indicator */
+
+#role-status {
+margin-top: 0.35rem;
+font-size: 0.75rem;
+letter-spacing: 0.12em;
+color: #777;
+}
+
+
+/* Last activity cards */
+
+.last-alert {
+    margin: 1rem auto 0;
+    padding: 1rem 1.25rem;
+    max-width: 500px;
+    border: 1px solid #333;
+    border-radius: 12px;
+    background: #151515;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.last-alert-label {
+    color: #777;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.last-alert strong {
+    font-size: 1rem;
+}
+
+.last-alert-time {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+
+/* Utility */
+
+.hidden {
+    display: none !important;
+}
+
+/* Phase 4 — connection status */
+
+#connection-status {
+    margin-top: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+}
+
+#status-dot {
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-connected {
+    color: #7bdc7b;
+}
+
+.status-connected #status-dot {
+    background: #65c765;
+}
+
+.status-connecting,
+.status-authenticating,
+.status-reconnecting {
+    color: #d8b75a;
+}
+
+.status-connecting #status-dot,
+.status-authenticating #status-dot,
+.status-reconnecting #status-dot {
+    background: #d8b75a;
+}
+
+.status-disconnected {
+    color: #e06b6b;
+}
+
+.status-disconnected #status-dot {
+    background: #d85c5c;
+}
+
+
+/* Role indicator */
+
+#role-status {
+margin-top: 0.35rem;
+font-size: 0.75rem;
+letter-spacing: 0.12em;
+color: #777;
+}
+
+
+/* Last activity cards */
+
+.last-alert {
+    margin: 1rem auto 0;
+    padding: 1rem 1.25rem;
+    max-width: 500px;
+    border: 1px solid #333;
+    border-radius: 12px;
+    background: #151515;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.last-alert-label {
+    color: #777;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.last-alert strong {
+    font-size: 1rem;
+}
+
+.last-alert-time {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+
+/* Utility */
+
+.hidden {
+    display: none !important;
+}

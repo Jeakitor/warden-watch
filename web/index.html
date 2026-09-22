@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
@@ -13,6 +14,12 @@
         rel="stylesheet"
         href="/static/style.css"
     >
+
+    <link
+        rel="icon"
+        type="image/svg+xml"
+        href="/static/icon.svg"
+    >
 </head>
 
 <body>
@@ -21,7 +28,15 @@
 
         <header>
             <h1>WARDEN WATCH</h1>
-            <p id="status">Disconnected</p>
+
+            <div id="connection-status" class="status-disconnected">
+                <span id="status-dot"></span>
+                <span id="status">Disconnected</span>
+            </div>
+
+            <div id="role-status" class="hidden">
+                <span id="role-label"></span>
+            </div>
         </header>
 
         <section id="login">
@@ -57,6 +72,11 @@
                 </p>
 
             </div>
+            <div id="last-alert" class="last-alert hidden">
+                <span class="last-alert-label">Last alert</span>
+                <strong id="last-alert-title">—</strong>
+                <span id="last-alert-time">—</span>
+            </div>
 
         </section>
 
@@ -84,6 +104,12 @@
             <button data-event="WARDEN_LEFT">
                 🟢 Warden left
             </button>
+
+            <div id="last-sent" class="last-alert hidden">
+                <span class="last-alert-label">Last sent</span>
+                <strong id="last-sent-title">—</strong>
+                <span id="last-sent-time">—</span>
+            </div>
 
         </section>
 
