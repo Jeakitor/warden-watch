@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Warden Watch</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+</head>
+
+<body>
+
+    <main class="container">
+
+        <header>
+            <h1>WARDEN WATCH</h1>
+            <p id="status">Disconnected</p>
+        </header>
+
+        <section id="login">
+
+            <input
+                id="token"
+                type="password"
+                placeholder="Enter access token"
+                autocomplete="off"
+            >
+
+            <button id="connect">
+                Connect
+            </button>
+
+            <p id="error"></p>
+
+        </section>
+
+
+        <section id="client" class="hidden">
+
+            <div id="alert-display">
+
+                <div id="alert-icon">🟢</div>
+
+                <h2 id="alert-title">
+                    Coast clear
+                </h2>
+
+                <p id="alert-message">
+                    Waiting for an alert...
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <section id="lookout" class="hidden">
+
+            <h2>Lookout Controls</h2>
+
+            <button data-event="WARDEN_ENTERED">
+                🔴 Warden entered
+            </button>
+
+            <button data-event="WARDEN_STOOD_UP">
+                🟠 Warden stood up
+            </button>
+
+            <button data-event="WARDEN_LOOKING">
+                🟡 Warden looking
+            </button>
+
+            <button data-event="COAST_CLEAR">
+                🟢 Coast clear
+            </button>
+
+            <button data-event="WARDEN_LEFT">
+                🟢 Warden left
+            </button>
+
+        </section>
+
+    </main>
+
+    <script src="/static/app.js"></script>
+
+</body>
+</html>
