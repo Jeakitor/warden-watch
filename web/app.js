@@ -11,21 +11,21 @@ let manuallyDisconnected = false;
 const EVENTS = {
     WARDEN_ENTERED: {
         icon: "🔴",
-        title: "Warden entered",
+        title: "Unsubmitted work",
         message: "Be alert",
         className: "alert-red"
     },
 
     WARDEN_STOOD_UP: {
         icon: "🟠",
-        title: "Warden stood up",
+        title: "Teacher marking work",
         message: "Be prepared",
         className: "alert-orange"
     },
 
     WARDEN_LOOKING: {
         icon: "🟡",
-        title: "Warden looking",
+        title: "Teacher Reviewing work",
         message: "Stay sharp",
         className: "alert-yellow"
     },
@@ -39,8 +39,8 @@ const EVENTS = {
 
     WARDEN_LEFT: {
         icon: "🟢",
-        title: "Warden left",
-        message: "Goon forth my children",
+        title: "He left lmao",
+        message: "Goon forth my children.",
         className: "alert-green"
     }
 };
