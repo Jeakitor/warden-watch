@@ -49,6 +49,12 @@ LOOKOUT_TOKEN = CONFIG["lookout_token"]
 
 app = FastAPI(title="Warden Watch")
 
+app.mount(
+    "/static",
+    StaticFiles(directory=WEB_DIR),
+    name="static",
+)
+
 clients = set()
 lookout = None
 
