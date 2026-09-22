@@ -22,15 +22,30 @@ ALLOWED_EVENTS = {
     "WARDEN_LEFT",
 }
 
-
 def load_config():
     """
-    Use environment variables in production.
-    Fall back to config/server.json for local development.
+    Load authentication secrets.
+
+    In production, both tokens must come from environment variables.
+    For local development, fall back to config/server.json.
     """
+
+    environment = os.getenv("WARDEN_ENV", "development")
 
     client_token = os.getenv("WARDEN_CLIENT_TOKEN")
     lookout_token = os.getenv("WARDEN_LOOKOUT_TOKEN")
+
+    if environment == "production":
+        if not client_token or not lookout_token:
+            raise RuntimeError(
+                "Production environment requires "
+                "WARDEN_CLIENT_TOKEN and WARDEN_LOOKOUT_TOKEN"
+            )
+
+        return {
+            "client_token": client_token,
+            "lookout_token": lookout_token,
+        }
 
     if client_token and lookout_token:
         return {
@@ -73,6 +88,14 @@ async def index():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/version")
+async def version():
+    return {
+        "name": "Warden Watch",
+        "version": "1.0.0",
+    }
 
 async def send_json(websocket, data):
     await websocket.send_text(json.dumps(data))
